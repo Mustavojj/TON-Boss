@@ -1,0 +1,12 @@
+{
+  "name": "ton-boss-app",
+  "version": "1.0.0",
+  "description": "TON BOSS - Earn TON Mini App",
+  "type": "module",
+  "dependencies": {
+    "pg": "^8.11.3"
+  },
+  "scripts": {
+    "build": "echo 'No build needed'"
+  }
+}
