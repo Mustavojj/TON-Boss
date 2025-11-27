@@ -1,34 +1,32 @@
+// js/app.js - محدث للعمل مع Neon
 class TonBossApp {
     constructor() {
         this.tg = window.Telegram.WebApp;
-        this.supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
         this.currentUser = null;
         this.currentPage = 'home';
+        this.selectedTaskType = null;
+        this.selectedMembersCount = null;
         this.init();
     }
 
     async init() {
         try {
-            console.log('🚀 Initializing TON BOSS App...');
-            
+            console.log('🚀 Initializing TON BOSS App with Neon...');
             
             if (!this.tg.initDataUnsafe?.user) {
                 this.showError('⚠️ Please open this app in Telegram');
                 return;
             }
 
-            
             this.tg.ready();
             this.tg.expand();
             this.tg.enableClosingConfirmation();
 
-            
             await this.initializeUser();
-            
             this.renderApp();
             this.setupEventListeners();
 
-            console.log('✅ App initialized successfully');
+            console.log('✅ App initialized successfully with Neon');
             
         } catch (error) {
             console.error('❌ App initialization failed:', error);
@@ -40,72 +38,51 @@ class TonBossApp {
         const tgUser = this.tg.initDataUnsafe.user;
         console.log('👤 Telegram User:', tgUser);
 
-        // البحث عن المستخدم
-        let user = await this.getUser(tgUser.id);
-        
-        // إنشاء مستخدم جديد إذا لم يكن موجوداً
-        if (!user) {
-            user = await this.createUser({
+        try {
+            // البحث عن المستخدم
+            let user = await NeonAPI.getUser(tgUser.id);
+            
+            // إنشاء مستخدم جديد إذا لم يكن موجوداً
+            if (!user) {
+                user = await NeonAPI.createUser({
+                    telegram_id: tgUser.id,
+                    first_name: tgUser.first_name,
+                    last_name: tgUser.last_name || '',
+                    username: tgUser.username || '',
+                    photo_url: tgUser.photo_url || this.generateAvatar(tgUser.first_name),
+                    balance: 0.5,
+                    tub_balance: 1000,
+                    total_earned: 0,
+                    referrals: 0,
+                    referral_earnings: 0,
+                    daily_ads: 0,
+                    lifetime_ads: 0
+                });
+            }
+
+            this.currentUser = user;
+            console.log('✅ User initialized with Neon:', user);
+        } catch (error) {
+            console.error('Error initializing user:', error);
+            // استخدام بيانات افتراضية مؤقتة
+            this.currentUser = {
                 telegram_id: tgUser.id,
                 first_name: tgUser.first_name,
                 last_name: tgUser.last_name || '',
                 username: tgUser.username || '',
                 photo_url: tgUser.photo_url || this.generateAvatar(tgUser.first_name),
-                balance: 0.5, // رصيد ابتدائي
+                balance: 0.5,
                 tub_balance: 1000,
                 total_earned: 0,
                 referrals: 0,
-                referral_earnings: 0,
                 daily_ads: 0,
-                lifetime_ads: 0,
-                created_at: new Date().toISOString()
-            });
+                lifetime_ads: 0
+            };
         }
-
-        this.currentUser = user;
-        console.log('✅ User initialized:', user);
     }
 
     generateAvatar(name) {
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366F1&color=fff&size=128`;
-    }
-
-    async getUser(telegramId) {
-        try {
-            const { data, error } = await this.supabase
-                .from('users')
-                .select('*')
-                .eq('telegram_id', telegramId)
-                .single();
-            
-            if (error && error.code !== 'PGRST116') {
-                console.error('Supabase error:', error);
-                return null;
-            }
-            return data;
-        } catch (error) {
-            console.error('Error getting user:', error);
-            return null;
-        }
-    }
-
-    async createUser(userData) {
-        try {
-            const { data, error } = await this.supabase
-                .from('users')
-                .insert([userData])
-                .select()
-                .single();
-            
-            if (error) {
-                console.error('Error creating user:', error);
-                throw error;
-            }
-            return data;
-        } catch (error) {
-            console.error('Error creating user:', error);
-            throw error;
-        }
     }
 
     renderApp() {
@@ -212,7 +189,7 @@ class TonBossApp {
                     </div>
                 </div>
 
-                <!-- صفحة المهام -->
+                <!-- صفحات أخرى تبقى كما هي -->
                 <div id="tasks-page" class="page">
                     <div class="glass-card">
                         <div class="section-header">
@@ -221,17 +198,14 @@ class TonBossApp {
                             </div>
                             <h3>Available Tasks</h3>
                         </div>
-                        <div id="tasks-container">
-                            <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
-                                <i class="fas fa-tasks" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                                <h3>No Tasks Available</h3>
-                                <p>Check back later for new tasks!</p>
-                            </div>
+                        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                            <i class="fas fa-tasks" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <h3>Tasks Coming Soon</h3>
+                            <p>We're preparing amazing tasks for you!</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- صفحة التحويل -->
                 <div id="exchange-page" class="page">
                     <div class="glass-card">
                         <div class="section-header">
@@ -240,31 +214,14 @@ class TonBossApp {
                             </div>
                             <h3>Exchange GOLD to TON</h3>
                         </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">From (GOLD)</label>
-                            <input type="number" id="tub-amount" class="form-input" placeholder="0" 
-                                   min="0" max="${this.currentUser.tub_balance}" value="0">
-                            <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
-                                Available: ${Math.floor(this.currentUser.tub_balance)} GOLD
-                            </small>
+                        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                            <i class="fas fa-sync-alt" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <h3>Exchange Coming Soon</h3>
+                            <p>Exchange feature will be available soon!</p>
                         </div>
-
-                        <div class="form-group">
-                            <label class="form-label">To (TON)</label>
-                            <input type="number" id="ton-amount" class="form-input" placeholder="0" readonly>
-                            <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
-                                Rate: ${APP_CONFIG.conversionRate.toLocaleString()} GOLD = 1 TON
-                            </small>
-                        </div>
-
-                        <button class="btn btn-success" onclick="app.convertCurrency()">
-                            <i class="fas fa-sync-alt"></i> Exchange Now
-                        </button>
                     </div>
                 </div>
 
-                <!-- صفحة السحب -->
                 <div id="withdraw-page" class="page">
                     <div class="glass-card">
                         <div class="section-header">
@@ -273,24 +230,11 @@ class TonBossApp {
                             </div>
                             <h3>Withdraw TON</h3>
                         </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">TON Wallet Address</label>
-                            <input type="text" class="form-input" placeholder="Enter your TON wallet address">
+                        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                            <i class="fas fa-wallet" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                            <h3>Withdrawal Coming Soon</h3>
+                            <p>Withdrawal feature will be available soon!</p>
                         </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Amount (TON)</label>
-                            <input type="number" class="form-input" placeholder="0.000" 
-                                   min="${APP_CONFIG.minWithdraw}" step="0.001" value="${APP_CONFIG.minWithdraw}">
-                            <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
-                                Minimum: ${APP_CONFIG.minWithdraw} TON | Available: ${this.currentUser.balance.toFixed(3)} TON
-                            </small>
-                        </div>
-
-                        <button class="btn btn-primary" onclick="app.processWithdrawal()">
-                            <i class="fas fa-paper-plane"></i> Withdraw TON
-                        </button>
                     </div>
                 </div>
             </main>
@@ -318,34 +262,19 @@ class TonBossApp {
     }
 
     updateUI() {
-        // تحديث كميات التحويل
-        const tubInput = document.getElementById('tub-amount');
-        const tonInput = document.getElementById('ton-amount');
-        
-        if (tubInput && tonInput) {
-            tubInput.addEventListener('input', () => {
-                const tubAmount = parseFloat(tubInput.value) || 0;
-                const tonAmount = tubAmount / APP_CONFIG.conversionRate;
-                tonInput.value = tonAmount.toFixed(6);
-            });
-        }
-        
-        console.log('✅ UI Updated');
+        console.log('✅ UI Updated with Neon');
     }
 
     setupEventListeners() {
-        console.log('✅ Event listeners setup');
+        console.log('✅ Event listeners setup with Neon');
     }
 
     switchPage(page) {
-        // إخفاء كل الصفحات
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
         
-        // إظهار الصفحة المطلوبة
         document.getElementById(`${page}-page`).classList.add('active');
         
-        // تفعيل زر التنقل
         const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => 
             btn.onclick && btn.onclick.toString().includes(`'${page}'`)
         );
@@ -357,29 +286,34 @@ class TonBossApp {
 
     async watchAd() {
         try {
-            // التحقق من الحد اليومي
             if (this.currentUser.daily_ads >= APP_CONFIG.dailyAdLimit) {
                 this.showNotification('🎯 Daily ad limit reached! Come back tomorrow.', 'warning');
                 return;
             }
 
             this.showNotification('📺 Loading advertisement...', 'info');
-
-            // محاكاة مشاهدة إعلان (3 ثواني)
             await new Promise(resolve => setTimeout(resolve, 3000));
 
             const reward = APP_CONFIG.adValue;
             
-            // تحديث بيانات المستخدم
-            await this.updateUser({
-                tub_balance: this.currentUser.tub_balance + reward,
-                total_earned: this.currentUser.total_earned + reward,
-                daily_ads: this.currentUser.daily_ads + 1,
-                lifetime_ads: this.currentUser.lifetime_ads + 1,
-                updated_at: new Date().toISOString()
-            });
+            // تحديث البيانات محلياً أولاً
+            this.currentUser.tub_balance += reward;
+            this.currentUser.total_earned += reward;
+            this.currentUser.daily_ads += 1;
+            this.currentUser.lifetime_ads += 1;
 
-            // تأثير الاهتزاز في Telegram
+            // محاولة حفظ في قاعدة البيانات
+            try {
+                await NeonAPI.updateUser(this.currentUser.telegram_id, {
+                    tub_balance: this.currentUser.tub_balance,
+                    total_earned: this.currentUser.total_earned,
+                    daily_ads: this.currentUser.daily_ads,
+                    lifetime_ads: this.currentUser.lifetime_ads
+                });
+            } catch (dbError) {
+                console.log('Database update failed, using local data:', dbError);
+            }
+
             if (this.tg.HapticFeedback) {
                 this.tg.HapticFeedback.notificationOccurred('success');
             }
@@ -393,82 +327,16 @@ class TonBossApp {
         }
     }
 
-    async updateUser(updates) {
-        try {
-            const { data, error } = await this.supabase
-                .from('users')
-                .update(updates)
-                .eq('telegram_id', this.currentUser.telegram_id)
-                .select()
-                .single();
-            
-            if (error) {
-                console.error('Supabase update error:', error);
-                throw error;
-            }
-            
-            // تحديث المستخدم الحالي
-            this.currentUser = { ...this.currentUser, ...updates };
-            return data;
-        } catch (error) {
-            console.error('Error updating user:', error);
-            throw error;
-        }
-    }
-
-    async convertCurrency() {
-        try {
-            const tubAmount = parseFloat(document.getElementById('tub-amount').value) || 0;
-            const tonAmount = tubAmount / APP_CONFIG.conversionRate;
-
-            if (tubAmount <= 0) {
-                this.showNotification('⚠️ Please enter a valid amount', 'warning');
-                return;
-            }
-
-            if (tubAmount > this.currentUser.tub_balance) {
-                this.showNotification('❌ Insufficient GOLD balance', 'error');
-                return;
-            }
-
-            if (tubAmount < APP_CONFIG.conversionRate) {
-                this.showNotification(`⚠️ Minimum conversion is ${APP_CONFIG.conversionRate} GOLD`, 'warning');
-                return;
-            }
-
-            this.showNotification('🔄 Processing conversion...', 'info');
-
-            // تنفيذ التحويل
-            await this.updateUser({
-                tub_balance: this.currentUser.tub_balance - tubAmount,
-                balance: this.currentUser.balance + tonAmount
-            });
-
-            this.showNotification(`✅ Converted ${tubAmount} GOLD to ${tonAmount.toFixed(6)} TON`, 'success');
-            this.renderApp();
-
-        } catch (error) {
-            console.error('Error converting currency:', error);
-            this.showNotification('❌ Conversion failed', 'error');
-        }
-    }
-
     showAddTask() {
         this.showNotification('🚀 Add Task feature coming soon!', 'info');
     }
 
-    processWithdrawal() {
-        this.showNotification('🔄 Withdrawal system coming soon!', 'info');
-    }
-
     showNotification(message, type = 'info') {
-    
         const existingNotification = document.querySelector('.notification');
         if (existingNotification) {
             existingNotification.remove();
         }
 
-    
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.innerHTML = `
@@ -478,7 +346,6 @@ class TonBossApp {
 
         document.body.appendChild(notification);
 
-        
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.style.opacity = '0';
@@ -520,5 +387,3 @@ if (document.readyState === 'loading') {
 } else {
     window.app = new TonBossApp();
 }
-
-console.log('🎯 TON BOSS App script loaded');
