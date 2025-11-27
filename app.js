@@ -1,4 +1,4 @@
-// js/app.js - محدث للعمل مع Neon
+
 class TonBossApp {
     constructor() {
         this.tg = window.Telegram.WebApp;
