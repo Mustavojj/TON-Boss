@@ -1,6 +1,6 @@
 // Neon Database Configuration
 const NEON_CONFIG = {
-    connectionString: 'your-neon-connection-string-here',
+    connectionString: 'postgresql://neondb_owner:npg_vkqRln4jO8gp@ep-tiny-unit-aekcf9vq-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
     ssl: true
 };
 
