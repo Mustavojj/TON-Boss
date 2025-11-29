@@ -1,8 +1,16 @@
 {
-  "name": "ton-boss-app",
+  "name": "tonup-app",
   "version": "1.0.0",
-  "type": "module",
+  "description": "TonUP - Earn TON Crypto",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build process needed'"
+  },
   "dependencies": {
     "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
   }
 }
