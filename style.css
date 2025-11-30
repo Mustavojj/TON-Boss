@@ -160,60 +160,7 @@ body {
     cursor: pointer;
 }
 
-/* New Balance Display - Coin Style */
-.balance-display {
-    display: flex;
-    gap: 10px;
-}
 
-.balance-card {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 10px 14px;
-    border-radius: var(--radius-small);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 90px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-}
-
-.balance-card.coin {
-    background: var(--card-gold);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.balance-card.ton {
-    background: var(--card-blue);
-    border: 1px solid rgba(41, 98, 255, 0.3);
-}
-
-.balance-card i {
-    font-size: 1.2rem;
-    color: white;
-}
-
-.balance-amount {
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--tg-text);
-}
-
-/* Main Content */
-.main-content {
-    padding: 20px;
-}
-
-.page {
-    display: none;
-    animation: slideUp 0.3s ease-out;
-}
-
-.page.active {
-    display: block;
-}
-
-/* Statistics Grid - New Layout */
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -231,6 +178,7 @@ body {
     position: relative;
     overflow: hidden;
 }
+
 
 .stat-card::before {
     content: '';
@@ -597,7 +545,23 @@ body {
     transition: width 0.5s ease;
 }
 
-/* Buttons */
+.task-type-channel {
+    background: linear-gradient(135deg, #2962ff 0%, #1e4ed8 100%) !important;
+}
+
+.task-type-group {
+    background: linear-gradient(135deg, #00c853 0%, #00a844 100%) !important;
+}
+
+.task-type-bot {
+    background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%) !important;
+}
+
+.task-type-other {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
+}
+
+
 .btn {
     background: var(--tg-accent);
     color: white;
