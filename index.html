@@ -7,341 +7,77 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
     <!-- Loader -->
     <div id="app-loader">
-        <div class="spinner"></div>
-        <p id="loading-progress">0%</p>
-        <p class="loading-text">Loading Application...</p>
-    </div>
-
-    <!-- Popup -->
-    <div id="popup" class="popup-overlay">
-        <div class="popup-content">
-            <div id="popup-body"></div>
+        <div class="loader-content">
+            <div class="loader-logo">
+                <i class="fab fa-telegram"></i>
+                <span>TonUP</span>
+            </div>
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Loading TonUP...</p>
         </div>
     </div>
 
     <!-- Notifications -->
     <div class="notification-container" id="notification-container"></div>
 
-    <!-- Main App -->
-    <div id="app" style="display: none;">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="user-info">
-                <img id="user-photo" class="user-avatar" src="https://via.placeholder.com/50" alt="User">
-                <div class="user-details">
-                    <div class="user-name" id="user-name">Loading...</div>
-                    <div class="user-telegram-id" id="user-telegram-id">
-                        <span id="telegram-id-text">ID: Loading...</span>
-                        <i class="far fa-copy"></i>
-                    </div>
-                </div>
+    <!-- Swap Modal -->
+    <div id="swap-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Exchange TON</h3>
+                <button class="modal-close" onclick="app.closeSwapModal()">&times;</button>
             </div>
-            <div class="balance-display">
-                <div class="balance-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/12533/12533956.png" alt="GOLD">
-                    <span class="balance-amount" id="header-tub-balance">0</span>
-                </div>
-                <div class="balance-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/15301/15301814.png" alt="TON">
-                    <span class="balance-amount" id="header-ton-balance">0.000</span>
-                </div>
-            </div>
-        </header>
-        
-        <!-- Main Content -->
-        <main id="main-content">
-            <!-- Home Page -->
-            <div id="home-page" class="page active">
-                <!-- App Statistics -->
-                <div class="glass-card">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <h3>App Statistics</h3>
+            <div class="modal-body">
+                <div class="swap-input-group">
+                    <div class="swap-label">
+                        <span>From</span>
+                        <span class="available">Available: <span id="available-tub-balance">0</span> GOLD</span>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>TOTAL USERS</h3>
-                            <p id="total-users">0</p>
-                            <span class="stat-subtitle" id="total-users-sub">Users</span>
+                    <div class="swap-input-row">
+                        <div class="coin-display">
+                            <img src="https://cdn-icons-png.flaticon.com/512/12533/12533956.png" class="coin-icon" alt="GOLD">
+                            <span>GOLD</span>
                         </div>
-                        <div class="stat-card">
-                            <h3>TASKS COMPLETED</h3>
-                            <p id="tasks-completed">0</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>TASKS CREATED</h3>
-                            <p id="tasks-created">0</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>TOTAL EARNED</h3>
-                            <p id="total-earned-stat">0 TON</p>
-                        </div>
+                        <input type="number" class="swap-input" id="swap-tub-amount" placeholder="0" value="0" min="0">
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="glass-card">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h3>Quick Actions</h3>
-                    </div>
-                    <div class="quick-actions-grid">
-                        <div class="quick-action-card" onclick="showPage('tasks-page')">
-                            <i class="fas fa-coins"></i>
-                            <span>Earn</span>
-                        </div>
-                        <div class="quick-action-card" onclick="showPage('exchange-page')">
-                            <i class="fas fa-exchange-alt"></i>
-                            <span>Swap</span>
-                        </div>
-                        <div class="quick-action-card" onclick="showPage('withdraw-page')">
-                            <i class="fas fa-wallet"></i>
-                            <span>Withdraw</span>
-                        </div>
-                        <div class="quick-action-card" onclick="showPage('history-page')">
-                            <i class="fas fa-history"></i>
-                            <span>History</span>
-                        </div>
+                <div class="swap-arrow">
+                    <div class="swap-arrow-line"></div>
+                    <div class="swap-arrow-icon">
+                        <i class="fas fa-exchange-alt"></i>
                     </div>
                 </div>
 
-                <!-- Promo Code -->
-                <div class="glass-card">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-gift"></i>
+                <div class="swap-input-group">
+                    <div class="swap-label">
+                        <span>To</span>
+                        <span class="available">Available: <span id="available-ton-balance">0</span> TON</span>
+                    </div>
+                    <div class="swap-input-row">
+                        <div class="coin-display">
+                            <img src="https://cdn-icons-png.flaticon.com/512/15301/15301814.png" class="coin-icon" alt="TON">
+                            <span>TON</span>
                         </div>
-                        <h3>Promo Code</h3>
-                    </div>
-                    <div class="promo-body">
-                        <input type="text" id="promoInput" placeholder="Enter promo code" />
-                        <button id="promo-btn">Claim</button>
+                        <input type="number" class="swap-input" id="swap-ton-amount" placeholder="0" value="0" readonly>
                     </div>
                 </div>
-            </div>
 
-            <!-- Tasks Page -->
-            <div id="tasks-page" class="page">
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <h3>Tasks & Quests</h3>
+                <div class="swap-rate">
+                    <span id="exchange-rate">Rate: 10,000 GOLD = 1 TON</span>
                 </div>
 
-                <!-- Add Task Button -->
-                <button class="add-task-btn" onclick="showAddTaskModal()">
-                    <i class="fas fa-plus"></i>
-                    Add Task
+                <button class="btn" id="swap-confirm-btn" style="width: 100%; padding: 16px;">
+                    Exchange Now
                 </button>
-
-                <!-- My Tasks Section -->
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-list-check"></i>
-                    </div>
-                    <h3>My Tasks</h3>
-                </div>
-                <div id="my-tasks-container" class="tasks-grid"></div>
-
-                <!-- Available Tasks -->
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-play-circle"></i>
-                    </div>
-                    <h3>Available Tasks</h3>
-                </div>
-                <div id="available-tasks-container" class="tasks-grid"></div>
             </div>
-
-            <!-- Exchange Page -->
-            <div id="exchange-page" class="page">
-                <div class="swap-section">
-                    <div class="swap-header">
-                        <h2>Exchange Center</h2>
-                    </div>
-                    
-                    <div class="exchange-card">
-                        <div class="swap-from">
-                            <div class="swap-label">
-                                <span>From</span>
-                                <span class="available">Available: <span id="available-tub-balance">0</span> GOLD</span>
-                            </div>
-                            <div class="swap-input-group">
-                                <div class="coin-display">
-                                    <img src="https://cdn-icons-png.flaticon.com/512/12533/12533956.png" class="coin-icon">
-                                    <span>GOLD</span>
-                                </div>
-                                <input type="number" class="swap-input" id="tub-amount" placeholder="0" value="0" min="0" step="1">
-                            </div>
-                        </div>
-
-                        <div class="swap-arrow">
-                            <div class="swap-arrow-line"></div>
-                            <div class="swap-arrow-refresh">
-                                <i class="fas fa-exchange-alt"></i>
-                            </div>
-                        </div>
-
-                        <div class="swap-to">
-                            <div class="swap-label">
-                                <span>To</span>
-                                <span class="available">Available: <span id="available-ton-balance">0</span> TON</span>
-                            </div>
-                            <div class="swap-input-group">
-                                <div class="coin-display">
-                                    <img src="https://cdn-icons-png.flaticon.com/512/15301/15301814.png" class="coin-icon">
-                                    <span>TON</span>
-                                </div>
-                                <input type="number" class="swap-input" id="ton-amount" placeholder="0" value="0" readonly>
-                            </div>
-                        </div>
-
-                        <div class="swap-rate">
-                            <span id="exchange-rate">Rate: 10,000 GOLD = 1 TON</span>
-                        </div>
-
-                        <button class="swap-btn" id="convert-btn">Exchange Now</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Referrals Page -->
-            <div id="referrals-page" class="page">
-                <div class="referral-stats-grid">
-                    <div class="referral-stat-card">
-                        <h3>Total Referrals</h3>
-                        <p id="referrals-total-count">0</p>
-                    </div>
-                    <div class="referral-stat-card">
-                        <h3>Referral Earnings</h3>
-                        <p id="referrals-total-earnings">0</p>
-                    </div>
-                </div>
-
-                <div class="glass-card">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-share-alt"></i>
-                        </div>
-                        <h3>Your Referral Link</h3>
-                    </div>
-                    <div class="referral-link-container">
-                        <div class="referral-link-input">
-                            <input type="text" id="referral-link-input" readonly>
-                            <button id="copy-referral-link-btn" class="action-btn">Copy</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Referral Benefits</h3>
-                </div>
-                
-                <div class="glass-card">
-                    <div class="benefit-item">
-                        <i class="fas fa-gift"></i>
-                        <div>
-                            <strong>Earn 100% from referrals</strong>
-                            <p>Get 100% commission from all your referrals' earnings</p>
-                        </div>
-                    </div>
-                    
-                    <div class="benefit-item">
-                        <i class="fas fa-bolt"></i>
-                        <div>
-                            <strong>Instant Bonuses</strong>
-                            <p>Receive bonuses immediately when your referrals complete tasks</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Withdraw Page -->
-            <div id="withdraw-page" class="page">
-                <div class="glass-card">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <h3>Withdraw Funds</h3>
-                    </div>
-                    <form id="withdraw-form">
-                        <div class="form-group">
-                            <label for="account-number">TON Wallet Address</label>
-                            <input type="text" id="account-number" class="form-input" placeholder="Enter your TON wallet" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="amount">Amount to Withdraw</label>
-                            <input type="number" step="any" id="amount" class="form-input" placeholder="Enter TON amount" required>
-                        </div>
-                        <button type="submit" id="withdraw-submit-btn" class="action-btn" style="width: 100%; margin-top: 15px;">
-                            Confirm Withdrawal
-                        </button>
-                    </form>
-                </div>
-
-                <div class="withdraw-note">
-                    Minimum Withdrawal is 0.05 TON
-                </div>
-              
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <h3>Withdrawal History</h3>
-                </div>
-                <div id="withdrawal-history-list"></div>
-            </div>
-
-            <!-- History Page -->
-            <div id="history-page" class="page">
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <h3>Transaction History</h3>
-                </div>
-                <div id="transaction-history-list"></div>
-            </div>
-        </main>
-
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
-            <button class="nav-btn active" data-page="home-page">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </button>
-            <button class="nav-btn" data-page="tasks-page">
-                <i class="fas fa-tasks"></i>
-                <span>Tasks</span>
-            </button>
-            <button class="nav-btn" data-page="exchange-page">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Exchange</span>
-            </button>
-            <button class="nav-btn" data-page="referrals-page">
-                <i class="fas fa-users"></i>
-                <span>Referrals</span>
-            </button>
-            <button class="nav-btn" data-page="withdraw-page">
-                <i class="fas fa-wallet"></i>
-                <span>Wallet</span>
-            </button>
-        </nav>
+        </div>
     </div>
 
     <!-- Add Task Modal -->
@@ -349,7 +85,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Add New Task</h3>
-                <button class="modal-close" onclick="closeAddTaskModal()">&times;</button>
+                <button class="modal-close" onclick="app.closeAddTaskModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -380,11 +116,331 @@
                     <strong>Cost: <span id="task-cost">0</span> TON</strong>
                 </div>
 
-                <button id="create-task-btn" class="action-btn full-width" onclick="createTask()">
+                <button id="create-task-btn" class="btn" style="width: 100%;">
                     Create Task - <span id="task-cost-btn">0 TON</span>
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name" id="user-name">Loading...</div>
+                        <div class="user-telegram-id" id="user-telegram-id">
+                            <span id="telegram-id-text">ID: Loading...</span>
+                            <i class="far fa-copy"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="balance-display">
+                    <div class="balance-card">
+                        <img src="https://cdn-icons-png.flaticon.com/512/12533/12533956.png" alt="GOLD">
+                        <span class="balance-amount" id="header-tub-balance">0</span>
+                    </div>
+                    <div class="balance-card">
+                        <img src="https://cdn-icons-png.flaticon.com/512/15301/15301814.png" alt="TON">
+                        <span class="balance-amount" id="header-ton-balance">0.000</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Page -->
+            <div id="home-page" class="page active">
+                <!-- Statistics Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>TOTAL USERS</h3>
+                        <div class="stat-value" id="total-users">0</div>
+                        <div class="stat-subtitle" id="total-users-sub">Active Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3>TASKS COMPLETED</h3>
+                        <div class="stat-value" id="tasks-completed">0</div>
+                        <div class="stat-subtitle">Total Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h3>TASKS CREATED</h3>
+                        <div class="stat-value" id="tasks-created">0</div>
+                        <div class="stat-subtitle">Active Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h3>TOTAL EARNED</h3>
+                        <div class="stat-value" id="total-earned-stat">0</div>
+                        <div class="stat-subtitle">TON Earned</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h2 class="section-title">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h2>
+                    <div class="quick-actions-grid">
+                        <div class="quick-action-card" onclick="app.showPage('tasks-page')">
+                            <i class="fas fa-tasks"></i>
+                            <span>Tasks</span>
+                        </div>
+                        <div class="quick-action-card" onclick="app.showSwapModal()">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Swap</span>
+                        </div>
+                        <div class="quick-action-card" onclick="app.showPage('referrals-page')">
+                            <i class="fas fa-users"></i>
+                            <span>Referrals</span>
+                        </div>
+                        <div class="quick-action-card" onclick="app.showPage('withdraw-page')">
+                            <i class="fas fa-wallet"></i>
+                            <span>Withdraw</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promo Code Section -->
+                <div class="promo-section">
+                    <div class="promo-header">
+                        <i class="fas fa-gift"></i>
+                        <h3>Promo Code</h3>
+                    </div>
+                    <div class="promo-body">
+                        <input type="text" id="promoInput" placeholder="Enter promo code">
+                        <button id="promo-btn">Claim</button>
+                    </div>
+                </div>
+
+                <!-- Recent Tasks -->
+                <div class="tasks-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-rocket"></i>
+                        Available Tasks
+                    </h2>
+                    <div id="recent-tasks-container">
+                        <!-- Tasks will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Page -->
+            <div id="tasks-page" class="page">
+                <div class="section-title">
+                    <i class="fas fa-tasks"></i>
+                    Tasks & Quests
+                </div>
+
+                <!-- Add Task Button -->
+                <button class="btn" onclick="app.showAddTaskModal()" style="width: 100%; margin-bottom: 20px;">
+                    <i class="fas fa-plus"></i>
+                    Add New Task
+                </button>
+
+                <!-- My Tasks -->
+                <div class="section-title">
+                    <i class="fas fa-list-check"></i>
+                    My Tasks
+                </div>
+                <div id="my-tasks-container">
+                    <!-- User's tasks will be loaded here -->
+                </div>
+
+                <!-- Available Tasks -->
+                <div class="section-title">
+                    <i class="fas fa-play-circle"></i>
+                    Available Tasks
+                </div>
+                <div id="available-tasks-container">
+                    <!-- Available tasks will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Referrals Page -->
+            <div id="referrals-page" class="page">
+                <div class="section-title">
+                    <i class="fas fa-users"></i>
+                    Referral Program
+                </div>
+
+                <!-- Referral Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3>TOTAL REFERRALS</h3>
+                        <div class="stat-value" id="referrals-total-count">0</div>
+                        <div class="stat-subtitle">Active Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h3>REFERRAL EARNINGS</h3>
+                        <div class="stat-value" id="referrals-total-earnings">0</div>
+                        <div class="stat-subtitle">TON Earned</div>
+                    </div>
+                </div>
+
+                <!-- Referral Link -->
+                <div class="promo-section">
+                    <div class="promo-header">
+                        <i class="fas fa-share-alt"></i>
+                        <h3>Your Referral Link</h3>
+                    </div>
+                    <div class="promo-body">
+                        <input type="text" id="referral-link-input" readonly>
+                        <button id="copy-referral-link-btn">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Referral Benefits -->
+                <div class="tasks-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-gift"></i>
+                        Referral Benefits
+                    </h2>
+                    
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-icon" style="background: var(--card-green);">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="task-content">
+                                <h3 class="task-title">100% Commission</h3>
+                                <p class="task-description">Earn 100% from your referrals' earnings</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-icon" style="background: var(--card-purple);">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="task-content">
+                                <h3 class="task-title">Instant Rewards</h3>
+                                <p class="task-description">Get rewards immediately when referrals complete tasks</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-icon" style="background: var(--card-orange);">
+                                <i class="fas fa-infinity"></i>
+                            </div>
+                            <div class="task-content">
+                                <h3 class="task-title">Unlimited Earnings</h3>
+                                <p class="task-description">No limits on how many referrals you can have</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Page -->
+            <div id="withdraw-page" class="page">
+                <div class="section-title">
+                    <i class="fas fa-wallet"></i>
+                    Withdraw Funds
+                </div>
+
+                <!-- Withdraw Form -->
+                <div class="promo-section">
+                    <form id="withdraw-form">
+                        <div class="form-group">
+                            <label for="account-number">TON Wallet Address</label>
+                            <input type="text" id="account-number" class="form-input" placeholder="Enter your TON wallet" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Amount to Withdraw (TON)</label>
+                            <input type="number" step="0.001" id="amount" class="form-input" placeholder="0.05" min="0.05" required>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">
+                            Confirm Withdrawal
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Minimum Withdrawal Note -->
+                <div class="task-card" style="background: rgba(255, 165, 0, 0.1); border-color: rgba(255, 165, 0, 0.3);">
+                    <div class="task-header">
+                        <div class="task-icon" style="background: var(--tg-warning);">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="task-content">
+                            <h3 class="task-title">Minimum Withdrawal</h3>
+                            <p class="task-description">Minimum withdrawal amount is 0.05 TON</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdrawal History -->
+                <div class="section-title">
+                    <i class="fas fa-history"></i>
+                    Withdrawal History
+                </div>
+                <div id="withdrawal-history-list">
+                    <!-- Withdrawal history will be loaded here -->
+                </div>
+            </div>
+
+            <!-- History Page -->
+            <div id="history-page" class="page">
+                <div class="section-title">
+                    <i class="fas fa-receipt"></i>
+                    Transaction History
+                </div>
+                <div id="transaction-history-list">
+                    <!-- Transaction history will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-page="home-page">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </button>
+            <button class="nav-btn" data-page="tasks-page">
+                <i class="fas fa-tasks"></i>
+                <span>Tasks</span>
+            </button>
+            <button class="nav-btn" data-page="referrals-page">
+                <i class="fas fa-users"></i>
+                <span>Referrals</span>
+            </button>
+            <button class="nav-btn" data-page="withdraw-page">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </button>
+            <button class="nav-btn" data-page="history-page">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </button>
+        </nav>
     </div>
 
     <!-- Scripts -->
