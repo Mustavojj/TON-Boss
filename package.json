@@ -8,7 +8,7 @@
     "build": "echo 'No build process needed'"
   },
   "dependencies": {
-    "pg": "^8.11.3"
+    "@supabase/supabase-js": "^2.38.0"
   },
   "devDependencies": {
     "serve": "^14.2.1"
