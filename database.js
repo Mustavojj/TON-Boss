@@ -1,249 +1,283 @@
-// Neon Database Configuration
-const NEON_CONFIG = {
-    connectionString: 'postgresql://neondb_owner:npg_vkqRln4jO8gp@ep-tiny-unit-aekcf9vq-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
-    ssl: true
-};
-
+// Enhanced Database class with API integration and fallback
 class Database {
     constructor() {
-        this.pool = null;
-        this.init();
+        this.useLocalStorage = false;
+        this.requestQueue = [];
+        this.isProcessing = false;
+        this.lastRequestTime = 0;
+        this.MIN_REQUEST_INTERVAL = 100; // Minimum 100ms between requests
     }
 
-    async init() {
-        // Initialize database connection
+    // Rate limiting and request queuing
+    async queueRequest(operation) {
+        return new Promise((resolve, reject) => {
+            this.requestQueue.push({ operation, resolve, reject });
+            this.processQueue();
+        });
+    }
+
+    async processQueue() {
+        if (this.isProcessing || this.requestQueue.length === 0) return;
+        
+        this.isProcessing = true;
+        
+        while (this.requestQueue.length > 0) {
+            const now = Date.now();
+            const timeSinceLastRequest = now - this.lastRequestTime;
+            
+            if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
+                await new Promise(resolve => 
+                    setTimeout(resolve, this.MIN_REQUEST_INTERVAL - timeSinceLastRequest)
+                );
+            }
+            
+            const { operation, resolve, reject } = this.requestQueue.shift();
+            this.lastRequestTime = Date.now();
+            
+            try {
+                const result = await operation();
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+        
+        this.isProcessing = false;
+    }
+
+    async apiRequest(endpoint, options = {}) {
         try {
-            // For Neon PostgreSQL
-            const { Pool } = await import('pg');
-            this.pool = new Pool({
-                connectionString: NEON_CONFIG.connectionString,
-                ssl: NEON_CONFIG.ssl
+            const baseURL = window.location.origin;
+            const response = await fetch(`${baseURL}/.netlify/functions/api${endpoint}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
             });
-            console.log('Database connected successfully');
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
         } catch (error) {
-            console.error('Database connection failed:', error);
-            // Fallback to localStorage for demo
-            this.useLocalStorage = true;
+            console.error('API Request failed:', error);
+            throw error;
         }
     }
 
     // User Management
     async getUser(userId) {
-        if (this.useLocalStorage) {
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            return users[userId] || null;
-        }
-
-        const result = await this.pool.query(
-            'SELECT * FROM users WHERE id = $1',
-            [userId]
-        );
-        return result.rows[0] || null;
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest(`/users?telegramId=${userId}`);
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for getUser');
+                const users = JSON.parse(localStorage.getItem('tonup_users') || '{}');
+                return users[userId] || null;
+            }
+        });
     }
 
     async createUser(userData) {
-        if (this.useLocalStorage) {
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            users[userData.id] = {
-                ...userData,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            localStorage.setItem('users', JSON.stringify(users));
-            return userData;
-        }
-
-        const result = await this.pool.query(
-            `INSERT INTO users (id, first_name, last_name, username, photo_url, balance, tub, referrals, total_earned, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-             RETURNING *`,
-            [
-                userData.id, userData.firstName, userData.lastName, 
-                userData.username, userData.photoUrl, userData.balance || 0,
-                userData.tub || 0, userData.referrals || 0, userData.totalEarned || 0,
-                new Date(), new Date()
-            ]
-        );
-        return result.rows[0];
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest('/users', {
+                    method: 'POST',
+                    body: JSON.stringify(userData)
+                });
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for createUser');
+                const users = JSON.parse(localStorage.getItem('tonup_users') || '{}');
+                const newUser = {
+                    ...userData,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                users[userData.id] = newUser;
+                localStorage.setItem('tonup_users', JSON.stringify(users));
+                return newUser;
+            }
+        });
     }
 
     async updateUser(userId, updates) {
-        if (this.useLocalStorage) {
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            if (users[userId]) {
-                users[userId] = {
-                    ...users[userId],
-                    ...updates,
-                    updatedAt: new Date().toISOString()
-                };
-                localStorage.setItem('users', JSON.stringify(users));
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest('/users/update', {
+                    method: 'POST',
+                    body: JSON.stringify({ telegramId: userId, updates })
+                });
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for updateUser');
+                const users = JSON.parse(localStorage.getItem('tonup_users') || '{}');
+                if (users[userId]) {
+                    users[userId] = {
+                        ...users[userId],
+                        ...updates,
+                        updatedAt: new Date().toISOString()
+                    };
+                    localStorage.setItem('tonup_users', JSON.stringify(users));
+                }
+                return users[userId];
             }
-            return users[userId];
-        }
-
-        const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 2}`).join(', ');
-        const values = Object.values(updates);
-        values.unshift(userId);
-
-        const result = await this.pool.query(
-            `UPDATE users SET ${setClause}, updated_at = $${values.length + 1} WHERE id = $1 RETURNING *`,
-            [...values, new Date()]
-        );
-        return result.rows[0];
+        });
     }
 
     // Task Management
     async createTask(taskData) {
-        if (this.useLocalStorage) {
-            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            const newTask = {
-                id: 'task_' + Date.now(),
-                ...taskData,
-                createdAt: new Date().toISOString(),
-                completions: 0
-            };
-            tasks.push(newTask);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            return newTask;
-        }
-
-        const result = await this.pool.query(
-            `INSERT INTO tasks (user_id, link, check_subscription, target_completions, cost, status, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
-             RETURNING *`,
-            [
-                taskData.userId, taskData.link, taskData.checkSubscription,
-                taskData.targetCompletions, taskData.cost, 'active', new Date()
-            ]
-        );
-        return result.rows[0];
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest('/tasks', {
+                    method: 'POST',
+                    body: JSON.stringify(taskData)
+                });
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for createTask');
+                const tasks = JSON.parse(localStorage.getItem('tonup_tasks') || '[]');
+                const newTask = {
+                    id: 'task_' + Date.now(),
+                    ...taskData,
+                    createdAt: new Date().toISOString(),
+                    completions: 0
+                };
+                tasks.push(newTask);
+                localStorage.setItem('tonup_tasks', JSON.stringify(tasks));
+                return newTask;
+            }
+        });
     }
 
     async getUserTasks(userId) {
-        if (this.useLocalStorage) {
-            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            return tasks.filter(task => task.userId === userId);
-        }
-
-        const result = await this.pool.query(
-            'SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC',
-            [userId]
-        );
-        return result.rows;
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest(`/tasks/user?userId=${userId}`);
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for getUserTasks');
+                const tasks = JSON.parse(localStorage.getItem('tonup_tasks') || '[]');
+                return tasks.filter(task => task.userId === userId);
+            }
+        });
     }
 
     async getAllTasks() {
-        if (this.useLocalStorage) {
-            return JSON.parse(localStorage.getItem('tasks') || '[]');
-        }
-
-        const result = await this.pool.query(
-            'SELECT * FROM tasks WHERE status = $1 ORDER BY created_at DESC',
-            ['active']
-        );
-        return result.rows;
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest('/tasks');
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for getAllTasks');
+                return JSON.parse(localStorage.getItem('tonup_tasks') || '[]');
+            }
+        });
     }
 
     async updateTaskCompletion(taskId) {
-        if (this.useLocalStorage) {
-            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            const taskIndex = tasks.findIndex(task => task.id === taskId);
-            if (taskIndex !== -1) {
-                tasks[taskIndex].completions = (tasks[taskIndex].completions || 0) + 1;
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                return tasks[taskIndex];
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest('/tasks/complete', {
+                    method: 'POST',
+                    body: JSON.stringify({ taskId })
+                });
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for updateTaskCompletion');
+                const tasks = JSON.parse(localStorage.getItem('tonup_tasks') || '[]');
+                const taskIndex = tasks.findIndex(task => task.id === taskId);
+                if (taskIndex !== -1) {
+                    tasks[taskIndex].completions = (tasks[taskIndex].completions || 0) + 1;
+                    localStorage.setItem('tonup_tasks', JSON.stringify(tasks));
+                    return tasks[taskIndex];
+                }
+                return null;
             }
-            return null;
-        }
-
-        const result = await this.pool.query(
-            'UPDATE tasks SET completions = completions + 1 WHERE id = $1 RETURNING *',
-            [taskId]
-        );
-        return result.rows[0];
+        });
     }
 
     async deleteTask(taskId) {
-        if (this.useLocalStorage) {
-            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            const filteredTasks = tasks.filter(task => task.id !== taskId);
-            localStorage.setItem('tasks', JSON.stringify(filteredTasks));
-            return true;
-        }
-
-        await this.pool.query(
-            'DELETE FROM tasks WHERE id = $1',
-            [taskId]
-        );
-        return true;
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest(`/tasks?taskId=${taskId}`, {
+                    method: 'DELETE'
+                });
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for deleteTask');
+                const tasks = JSON.parse(localStorage.getItem('tonup_tasks') || '[]');
+                const filteredTasks = tasks.filter(task => task.id !== taskId);
+                localStorage.setItem('tonup_tasks', JSON.stringify(filteredTasks));
+                return true;
+            }
+        });
     }
 
     // Statistics
     async getAppStatistics() {
-        if (this.useLocalStorage) {
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            
-            return {
-                totalUsers: Object.keys(users).length,
-                tasksCompleted: tasks.reduce((sum, task) => sum + (task.completions || 0), 0),
-                tasksCreated: tasks.length,
-                totalEarned: Object.values(users).reduce((sum, user) => sum + (user.totalEarned || 0), 0)
-            };
-        }
-
-        const usersCount = await this.pool.query('SELECT COUNT(*) FROM users');
-        const tasksCompleted = await this.pool.query('SELECT SUM(completions) FROM tasks');
-        const tasksCreated = await this.pool.query('SELECT COUNT(*) FROM tasks');
-        const totalEarned = await this.pool.query('SELECT SUM(total_earned) FROM users');
-
-        return {
-            totalUsers: parseInt(usersCount.rows[0].count),
-            tasksCompleted: parseInt(tasksCompleted.rows[0].sum || 0),
-            tasksCreated: parseInt(tasksCreated.rows[0].count),
-            totalEarned: parseFloat(totalEarned.rows[0].sum || 0)
-        };
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest('/statistics');
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for getAppStatistics');
+                const users = JSON.parse(localStorage.getItem('tonup_users') || '{}');
+                const tasks = JSON.parse(localStorage.getItem('tonup_tasks') || '[]');
+                
+                return {
+                    totalUsers: Object.keys(users).length,
+                    tasksCompleted: tasks.reduce((sum, task) => sum + (task.completions || 0), 0),
+                    tasksCreated: tasks.length,
+                    totalEarned: Object.values(users).reduce((sum, user) => sum + (user.totalEarned || 0), 0)
+                };
+            }
+        });
     }
 
     // Transaction History
     async createTransaction(transactionData) {
-        if (this.useLocalStorage) {
-            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-            const newTransaction = {
-                id: 'tx_' + Date.now(),
-                ...transactionData,
-                createdAt: new Date().toISOString()
-            };
-            transactions.push(newTransaction);
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-            return newTransaction;
-        }
-
-        const result = await this.pool.query(
-            `INSERT INTO transactions (user_id, type, amount, description, status, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6)
-             RETURNING *`,
-            [
-                transactionData.userId, transactionData.type, transactionData.amount,
-                transactionData.description, transactionData.status, new Date()
-            ]
-        );
-        return result.rows[0];
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest('/transactions', {
+                    method: 'POST',
+                    body: JSON.stringify(transactionData)
+                });
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for createTransaction');
+                const transactions = JSON.parse(localStorage.getItem('tonup_transactions') || '[]');
+                const newTransaction = {
+                    id: 'tx_' + Date.now(),
+                    ...transactionData,
+                    createdAt: new Date().toISOString()
+                };
+                transactions.push(newTransaction);
+                localStorage.setItem('tonup_transactions', JSON.stringify(transactions));
+                return newTransaction;
+            }
+        });
     }
 
     async getUserTransactions(userId) {
-        if (this.useLocalStorage) {
-            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-            return transactions.filter(tx => tx.userId === userId);
-        }
+        return this.queueRequest(async () => {
+            try {
+                return await this.apiRequest(`/transactions/user?userId=${userId}`);
+            } catch (error) {
+                console.warn('API failed, using localStorage fallback for getUserTransactions');
+                const transactions = JSON.parse(localStorage.getItem('tonup_transactions') || '[]');
+                return transactions.filter(tx => tx.userId === userId).slice(0, 50);
+            }
+        });
+    }
 
-        const result = await this.pool.query(
-            'SELECT * FROM transactions WHERE user_id = $1 ORDER BY created_at DESC',
-            [userId]
-        );
-        return result.rows;
+    // Get all users (for admin/statistics)
+    async getAllUsers() {
+        return this.queueRequest(async () => {
+            try {
+                // Note: This endpoint doesn't exist in our API, so it will always fallback
+                throw new Error('Endpoint not available');
+            } catch (error) {
+                const users = JSON.parse(localStorage.getItem('tonup_users') || '{}');
+                return Object.values(users);
+            }
+        });
     }
 }
 
-// Initialize database
+
 const db = new Database();
