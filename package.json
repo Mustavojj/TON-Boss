@@ -1,16 +1,8 @@
 {
-  "name": "tonup-app",
+  "name": "ton-boss",
   "version": "1.0.0",
-  "description": "TonUP - Earn TON Crypto",
-  "main": "index.html",
-  "scripts": {
-    "dev": "npx serve .",
-    "build": "echo 'No build process needed'"
-  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.38.0"
-  },
-  "devDependencies": {
-    "serve": "^14.2.1"
+    "node-telegram-bot-api": "^0.61.0",
+    "dotenv": "^16.0.0"
   }
 }
