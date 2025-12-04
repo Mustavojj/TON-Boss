@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TON BOSS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/loader.css">
+    <link rel="stylesheet" href="css/wallet.css">
+</head>
+<body>
+    <!-- Loader -->
+    <div id="app-loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p id="loading-progress">0%</p>
+            <p class="loading-text">TON BOSS - Initializing...</p>
+            <div class="security-check" id="security-check">
+                <div class="security-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="security-status">Security Check: Verifying Bot...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" style="display: none;">
+        <!-- Header -->
+        <header class="app-header" id="app-header"></header>
+        
+        <!-- Main Content -->
+        <main id="main-content">
+            <!-- Home Page -->
+            <div id="home-page" class="page active"></div>
+            
+            <!-- Tasks Page -->
+            <div id="tasks-page" class="page"></div>
+            
+            <!-- Exchange Page -->
+            <div id="exchange-page" class="page"></div>
+            
+            <!-- Referrals Page -->
+            <div id="referrals-page" class="page"></div>
+            
+            <!-- Wallet Page -->
+            <div id="wallet-page" class="page"></div>
+        </main>
+        
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav"></nav>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="add-task-modal"></div>
+    <div class="modal-overlay" id="swap-modal"></div>
+    <div class="modal-overlay" id="withdraw-modal"></div>
+    <div class="modal-overlay" id="deposit-modal"></div>
+    <div class="modal-overlay" id="connect-wallet-modal"></div>
+    
+    <!-- Notifications -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <script src="js/database.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/security.js"></script>
+    <script src="js/components/header.js"></script>
+    <script src="js/components/navigation.js"></script>
+    <script src="js/pages/home.js"></script>
+    <script src="js/pages/tasks.js"></script>
+    <script src="js/pages/exchange.js"></script>
+    <script src="js/pages/referrals.js"></script>
+    <script src="js/pages/wallet.js"></script>
+    <script src="js/modals/task-modal.js"></script>
+    <script src="js/modals/swap-modal.js"></script>
+    <script src="js/modals/wallet-modals.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
