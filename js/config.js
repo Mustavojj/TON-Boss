@@ -5,17 +5,16 @@ const AppConfig = {
     version: "2.0.0",
     botUsername: "TONBOSS_BOT",
     
-    // Firebase Configuration (Replace with your actual config)
-    firebaseConfig: {
-        apiKey: "AIzaSyA2U7rlxKJyeLMDvfDvO1QZEPO_QCmMbR0",
-        authDomain: "ton-boss-app.firebaseapp.com",
-        databaseURL: "https://ton-boss-app-default-rtdb.firebaseio.com",
-        projectId: "ton-boss-app",
-        storageBucket: "ton-boss-app.appspot.com",
-        messagingSenderId: "469440734985",
-        appId: "1:469440734985:web:5bb1a2c1f94a1285bd55d8",
-        measurementId: "G-48JGDXB307"
-    },
+firebaseConfig = {
+  apiKey: "AIzaSyBgZVF60SotjtCvAjv52GfBZv4ppKdGYWk",
+  authDomain: "new-you-6a04c.firebaseapp.com",
+  databaseURL: "https://new-you-6a04c-default-rtdb.firebaseio.com",
+  projectId: "new-you-6a04c",
+  storageBucket: "new-you-6a04c.firebasestorage.app",
+  messagingSenderId: "765835623631",
+  appId: "1:765835623631:web:9c3e8425123239c26ccbba",
+  measurementId: "G-TZGKT4GJ4L"
+}, 
     
     // Exchange Rates
     exchangeRate: 10000, // 10,000 GOLD = 1 TON
