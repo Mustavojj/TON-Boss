@@ -14,6 +14,16 @@ class SecurityModule {
             rateLimitPassed: false,
             ipCheckPassed: false
         };
+        
+        // Get security config
+        this.securityConfig = AppConfig?.security || {
+            requestCooldown: 1000,
+            maxRequestsPerMinute: 30,
+            botVerificationEnabled: true,
+            ipCheckEnabled: true,
+            multiAccountProtection: true,
+            rateLimitingEnabled: true
+        };
     }
 
     /**
@@ -70,9 +80,8 @@ class SecurityModule {
             const isTest = window.location.hostname.includes('localhost') || 
                           window.location.hostname.includes('127.0.0.1');
             
-            if (!isTest) {
+            if (!isTest && this.securityConfig.botVerificationEnabled) {
                 // In production, validate WebAppData
-                // This should be validated server-side in real implementation
                 if (!initData.hash) {
                     reject(new Error('Invalid Telegram WebApp data'));
                     return;
@@ -88,7 +97,7 @@ class SecurityModule {
      * Check IP and device for multi-account protection
      */
     async checkIPAndDevice() {
-        if (!AppConfig.security.ipCheckEnabled) {
+        if (!this.securityConfig.ipCheckEnabled) {
             this.securityChecks.ipCheckPassed = true;
             return true;
         }
@@ -105,7 +114,10 @@ class SecurityModule {
             const currentIP = "local"; // In production, get from server
             
             // Check if this IP has another user
-            if (ipData[currentIP] && ipData[currentIP] !== tgUserId) {
+            if (this.securityConfig.multiAccountProtection && 
+                ipData[currentIP] && 
+                ipData[currentIP] !== tgUserId) {
+                
                 // Check time difference between registrations
                 const timeDiff = Date.now() - ipData[`${currentIP}_time`];
                 if (timeDiff < 24 * 60 * 60 * 1000) { // 24 hours
@@ -189,7 +201,12 @@ class SecurityModule {
      * Setup rate limiting
      */
     setupRateLimiting() {
-        this.maxRequests = AppConfig.security.maxRequestsPerMinute;
+        if (!this.securityConfig.rateLimitingEnabled) {
+            this.securityChecks.rateLimitPassed = true;
+            return;
+        }
+        
+        this.maxRequests = this.securityConfig.maxRequestsPerMinute;
         this.requestWindow = 60000; // 1 minute
         
         // Clear old logs periodically
@@ -241,6 +258,10 @@ class SecurityModule {
      * Check if request is allowed (rate limiting)
      */
     isRequestAllowed() {
+        if (!this.securityConfig.rateLimitingEnabled) {
+            return true;
+        }
+        
         const now = Date.now();
         const userId = this.tg?.initDataUnsafe?.user?.id || "unknown";
         
@@ -311,7 +332,8 @@ class SecurityModule {
         return {
             ...this.securityChecks,
             totalRequests: this.requestLog.length,
-            blockedIPs: this.blockedIPs.size
+            blockedIPs: this.blockedIPs.size,
+            config: this.securityConfig
         };
     }
 
