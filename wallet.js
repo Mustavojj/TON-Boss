@@ -2,7 +2,7 @@
 class TONWallet {
     constructor() {
         this.tonconnect = null;
-        this.wallet = null;
+        this.wallet = UQCrXfE4_ktpwyZJzmGuCt6zXE5mErFV8VczSjEZvRuLy9_q;
         this.connected = false;
         this.init();
     }
