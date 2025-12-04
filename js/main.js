@@ -22,7 +22,6 @@ class TONBOSSApp {
         // State
         this.isInitialized = false;
         this.lastRequestTime = 0;
-        this.REQUEST_COOLDOWN = AppConfig.requestCooldown || 1000;
         
         // Initialize
         this.init();
@@ -160,7 +159,7 @@ class TONBOSSApp {
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 lastActive: Date.now(),
-                version: AppConfig.version
+                version: AppConfig?.version || '2.0.0'
             };
             
             userData = await window.db.createUser(userData);
@@ -442,7 +441,7 @@ class TONBOSSApp {
             }
             
             // Security check
-            if (!this.security?.isRequestAllowed?.()) {
+            if (this.security && !this.security.isRequestAllowed()) {
                 throw new Error('Rate limit exceeded');
             }
             
@@ -554,7 +553,7 @@ class TONBOSSApp {
     async claimPromoCode() {
         try {
             // Security check
-            if (!this.security?.isRequestAllowed?.()) {
+            if (this.security && !this.security.isRequestAllowed()) {
                 this.showNotification('Warning', 'Please wait before making another request', 'warning');
                 return;
             }
@@ -595,7 +594,7 @@ class TONBOSSApp {
     async handleWatchAd() {
         try {
             // Security check
-            if (!this.security?.isRequestAllowed?.()) {
+            if (this.security && !this.security.isRequestAllowed()) {
                 this.showNotification('Warning', 'Please wait before making another request', 'warning');
                 return;
             }
@@ -605,8 +604,14 @@ class TONBOSSApp {
                 return;
             }
             
+            // Get config values with defaults
+            const dailyAdLimit = AppConfig?.dailyAdLimit || 20;
+            const adValue = AppConfig?.adValue || 5;
+            const adsPerBreak = AppConfig?.adsPerBreak || 5;
+            const breakDuration = AppConfig?.breakDuration || 5;
+            
             // Check daily limit
-            if (this.userState.dailyAdCount >= AppConfig.dailyAdLimit) {
+            if (this.userState.dailyAdCount >= dailyAdLimit) {
                 this.showNotification('Limit Reached', 'Daily ad limit reached', 'warning');
                 return;
             }
@@ -624,7 +629,6 @@ class TONBOSSApp {
             
             setTimeout(async () => {
                 try {
-                    const adValue = AppConfig.adValue || 5;
                     const updates = {
                         tub: (this.userState.tub || 0) + adValue,
                         dailyAdCount: (this.userState.dailyAdCount || 0) + 1,
@@ -633,8 +637,8 @@ class TONBOSSApp {
                     };
                     
                     // Set break if needed
-                    if ((updates.dailyAdCount) % AppConfig.adsPerBreak === 0) {
-                        updates.breakUntil = now + (AppConfig.breakDuration * 60000);
+                    if (adsPerBreak > 0 && (updates.dailyAdCount) % adsPerBreak === 0) {
+                        updates.breakUntil = now + (breakDuration * 60000);
                     }
                     
                     await this.updateUserData(updates, 'watch_ad');
@@ -673,7 +677,7 @@ class TONBOSSApp {
     async completeTask(taskId) {
         try {
             // Security check
-            if (!this.security?.isRequestAllowed?.()) {
+            if (this.security && !this.security.isRequestAllowed()) {
                 this.showNotification('Warning', 'Please wait before making another request', 'warning');
                 return;
             }
