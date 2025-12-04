@@ -1,7 +1,29 @@
-/**
- * Wallet Modals for TON BOSS App
- * Handles deposit, withdraw, and connect wallet modals
- */
+
+if (!window.AppConfig) {
+    window.AppConfig = {
+        security: {
+            requestCooldown: 1000,
+            maxRequestsPerMinute: 30,
+            botVerificationEnabled: true,
+            ipCheckEnabled: true,
+            multiAccountProtection: true,
+            rateLimitingEnabled: true
+        },
+        dailyAdLimit: 20,
+        adValue: 5,
+        adsPerBreak: 5,
+        breakDuration: 5,
+        exchangeRate: 10000,
+        minWithdrawal: 0.10,
+        minDeposit: 0.05,
+        version: '2.0.0'
+    };
+}
+
+if (!window.AppConfig.security) {
+    window.AppConfig.security = {};
+}
+
 class WalletModals {
     constructor(app) {
         this.app = app;
