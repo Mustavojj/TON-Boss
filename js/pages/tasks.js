@@ -1,6 +1,29 @@
-/**
- * Tasks Page Component for TON BOSS App
- */
+
+if (!window.AppConfig) {
+    window.AppConfig = {
+        security: {
+            requestCooldown: 1000,
+            maxRequestsPerMinute: 30,
+            botVerificationEnabled: true,
+            ipCheckEnabled: true,
+            multiAccountProtection: true,
+            rateLimitingEnabled: true
+        },
+        dailyAdLimit: 20,
+        adValue: 5,
+        adsPerBreak: 5,
+        breakDuration: 5,
+        exchangeRate: 10000,
+        minWithdrawal: 0.10,
+        minDeposit: 0.05,
+        version: '2.0.0'
+    };
+}
+
+if (!window.AppConfig.security) {
+    window.AppConfig.security = {};
+}
+
 class TasksPage {
     constructor(app) {
         this.app = app;
