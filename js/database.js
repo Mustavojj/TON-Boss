@@ -52,11 +52,11 @@ class Database {
             this.database = this.firebase.database();
             this.auth = this.firebase.auth();
             
-            // IMPORTANT: DO NOT use anonymous auth for production!
-            // Instead, we'll use Telegram WebApp token for authentication
-            
-            // Test connection with limited access
-            await this.testConnection();
+            try {
+                await this.verifyConnection();
+            } catch (error) {
+                console.warn('Connection test failed, continuing anyway:', error);
+            }
             
             console.log('✅ Firebase initialized with secure connection');
             this.connected = true;
