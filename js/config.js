@@ -5,7 +5,7 @@ const AppConfig = {
     version: "2.0.0",
     botUsername: "TONBOSS_BOT",
     
-firebaseConfig: = {
+firebaseConfig: {
   apiKey: "AIzaSyBgZVF60SotjtCvAjv52GfBZv4ppKdGYWk",
   authDomain: "new-you-6a04c.firebaseapp.com",
   databaseURL: "https://new-you-6a04c-default-rtdb.firebaseio.com",
