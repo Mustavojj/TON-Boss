@@ -46,10 +46,14 @@ const AppConfig = {
     referralSignupBonus: 100, // GOLD bonus for new referral signup
     
     // Security Settings
-    requestCooldown: 1000, // 1 second between requests
-    maxRequestsPerMinute: 30,
-    botVerificationEnabled: true,
-    ipCheckEnabled: true,
+    security: {
+        requestCooldown: 1000, // 1 second between requests
+        maxRequestsPerMinute: 30,
+        botVerificationEnabled: true,
+        ipCheckEnabled: true,
+        multiAccountProtection: true,
+        rateLimitingEnabled: true
+    },
     
     // API Endpoints
     tonApi: "https://tonapi.io",
