@@ -272,7 +272,7 @@ class Database {
                     lastVerified: Date.now()
                 },
                 balance: userData.balance || 0,
-                tub: userData.tub || 1000,
+                tub: userData.tub || 0,
                 referrals: userData.referrals || 0,
                 referralEarnings: userData.referralEarnings || 0,
                 totalEarned: userData.totalEarned || 0,
